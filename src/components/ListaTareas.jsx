@@ -1,6 +1,54 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import {firebase} from '../firebase'
+
+
+
+
+
+
+
+
+
 
 const ListaTareas = () => {
+
+const [tareas, setTareas] = useState([])
+
+
+    useEffect(() => {
+
+        const obtenerDatos = async () =>{
+            try {
+
+                const db= firebase.firestore()
+                const data = await db.collection('Lista de tareas').get()
+                console.log(data.docs);
+
+                const arrayData = data.docs.map(doc => ({id: doc.id,  ...doc.data()}))
+                console.log(arrayData);
+                setTareas(arrayData)
+                setLista(arrayData)
+
+                
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        
+        obtenerDatos();
+        
+    }, [])
+
+
+
+
+
+
+
+
+
+
+
 
     const [tarea, setTarea] = useState("");
     const [lista, setLista] = useState([]);
@@ -10,21 +58,46 @@ const ListaTareas = () => {
     const [error, setError] = useState(false)
 
 
-    const enviarDatos = (e) => {
+    const enviarDatos = async (e) => {
 
         e.preventDefault();
         if (!tarea.trim()) {
             setError(true)
             return;
         }
+
+        try {
+
+            const db = firebase.firestore();
+            const nuevaTarea = {nombreTarea: tarea}
+
+            const data = await db.collection('Lista de tareas').add(nuevaTarea)
+            
+        } catch (error) {
+            console.log(error);
+        }
+
         setContador(contador + 1)
         setLista([...lista, { id: contador, nombreTarea: tarea }]);
         setTarea("")
         setError(false)
     }
 
-    const eliminar = (id) => {
+    const eliminar = async (id) => {
         console.log(id);
+
+        try {
+            
+
+            const db = firebase.firestore();
+            await db.collection('Lista de tareas').doc(id).delete()
+
+
+        } catch (error) {
+            console.log(error);
+        }
+
+
         const eliminado = lista.filter(item => item.id !== id)
         setLista(eliminado)
     }
@@ -36,12 +109,28 @@ const ListaTareas = () => {
         setError(false)
     }
 
-    const cambio = (e) => {
+    const cambio = async (e) => {
         e.preventDefault();
         if (!tarea.trim()) {
             setError(true)
             return;
         }
+
+        try {
+            
+
+            const db = firebase.firestore();
+            await db.collection('Lista de tareas').doc(unicoId).update({nombreTarea: tarea})
+
+
+        } catch (error) {
+            console.log(error);
+        }
+
+
+
+
+
         const cambiar = lista.map((item) => (
             item.id === unicoId ? { id: unicoId, nombreTarea: tarea } : item
         ))
